@@ -45,7 +45,11 @@ export class ArticleService {
 
   async getAllArticles() {
     try {
-      const articles = await this.prisma.article.findMany();
+      const articles = await this.prisma.article.findMany({
+        include: {
+          votes: true,
+        },
+      });
       return articles;
     } catch (e) {
       throw new InternalServerErrorException(e.message);
