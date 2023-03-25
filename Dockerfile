@@ -1,5 +1,5 @@
 # Use the official Node.js image as a base image for the builder
-FROM node:14 AS builder
+FROM node:18 AS builder
 
 # Set the working directory to /app
 WORKDIR /app
@@ -17,7 +17,7 @@ COPY . .
 RUN npm run build
 
 # Use the official Node.js image as a base image for the final image
-FROM node:14
+FROM node:18
 
 # Set the working directory to /app
 WORKDIR /app
