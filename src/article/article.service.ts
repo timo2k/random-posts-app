@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma, VoteType } from '@prisma/client';
 import { VoteLimitException } from 'src/errors';
 import { PrismaService } from 'src/prisma.service';
@@ -36,6 +40,15 @@ export class ArticleService {
 
     if (!article) {
       throw new NotFoundException('Article not found');
+    }
+  }
+
+  async getAllArticles() {
+    try {
+      const articles = await this.prisma.article.findMany();
+      return articles;
+    } catch (e) {
+      throw new InternalServerErrorException(e.message);
     }
   }
 }

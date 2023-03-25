@@ -1,21 +1,42 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { PrismaService } from 'src/prisma.service';
 
 @Injectable()
 export class AuthService {
-  constructor(private jwtService: JwtService) {}
+  constructor(private jwtService: JwtService, private prisma: PrismaService) {}
 
   async validateUser(userId: string): Promise<any> {
-    // Implement your user validation logic here.
     const user = { id: userId };
-    return user;
+
+    let hasUser;
+    try {
+      hasUser = await this.prisma.user.findUnique({
+        where: { id: user.id },
+      });
+    } catch (e) {
+      throw new InternalServerErrorException(e.message);
+    }
+
+    if (!hasUser) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    return hasUser;
   }
 
   async login(user: any) {
     const payload = { sub: user.id };
     return {
-      access_token: this.jwtService.sign(payload),
-      refresh_token: this.jwtService.sign(payload, { expiresIn: '7d' }),
+      access_token: this.jwtService.sign(payload, { expiresIn: '5m' }),
+      refresh_token: this.jwtService.sign(
+        { ...payload, type: 'refresh' },
+        { expiresIn: '7d' },
+      ),
     };
   }
 

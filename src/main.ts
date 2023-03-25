@@ -12,6 +12,7 @@ async function bootstrap() {
     .setDescription('API for managing articles and votes')
     .setVersion('1.0')
     .addTag('articles')
+    .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

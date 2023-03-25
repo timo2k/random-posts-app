@@ -12,6 +12,7 @@ import { ArticleService } from './article.service';
 import { HttpExceptionFilter } from 'src/filters';
 import {
   ApiBadRequestResponse,
+  ApiBearerAuth,
   ApiBody,
   ApiCreatedResponse,
   ApiOkResponse,
@@ -47,11 +48,19 @@ export class ArticleController {
     return this.articleService.getArticleById(id);
   }
 
+  @Get()
+  @ApiOperation({ summary: 'Get all articles' })
+  @ApiOkResponse({ description: 'The article has been successfully fetched.' })
+  async getAllArticles() {
+    return this.articleService.getAllArticles();
+  }
+
   @UseGuards(JwtAuthGuard)
   @Post(':id/vote')
   @ApiOperation({ summary: 'Create a vote for an article' })
   @ApiParam({ name: 'id', description: 'Article ID' })
   @ApiBody({ type: CreateVoteDto })
+  @ApiBearerAuth()
   @ApiCreatedResponse({
     description: 'The vote has been successfully created.',
   })

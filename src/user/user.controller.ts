@@ -4,13 +4,16 @@ import {
   Body,
   BadRequestException,
   UnauthorizedException,
+  UseFilters,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthService } from 'src/auth/auth.service';
 import { LoginUserDto, RegisterUserDto } from './dtos/user.dto';
+import { HttpExceptionFilter } from 'src/filters';
 
 @ApiTags('user')
+@UseFilters(HttpExceptionFilter)
 @Controller('user')
 export class UserController {
   constructor(
