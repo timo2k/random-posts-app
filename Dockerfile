@@ -1,38 +1,16 @@
-# ---- Base Node ----
-FROM node:18-alpine AS base
+FROM node:18-alpine
 
-WORKDIR /app
+WORKDIR /usr/src/app
 
 COPY package*.json ./
+COPY prisma ./prisma/
 
-# ---- Builder ----
-FROM base AS builder
+EXPOSE 3000
 
 RUN npm ci
 
 COPY . .
 
 RUN npm run build
-
-# ---- Prisma ----
-FROM builder AS prisma-builder
-
-RUN npm install --production
-
-RUN npx prisma generate
-
-# ---- Production ----
-FROM node:18-alpine AS production
-
-WORKDIR /app
-
-ENV NODE_ENV=production
-
-COPY --from=prisma-builder /app/node_modules ./node_modules
-COPY --from=builder /app/dist ./dist
-COPY --from=prisma-builder /app/prisma ./prisma
-COPY package*.json ./
-
-EXPOSE 3000
 
 CMD ["node", "dist/main"]
