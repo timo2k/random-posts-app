@@ -1,41 +1,38 @@
-# Use the official Node.js image as a base image for the builder
-FROM node:18 AS builder
+# ---- Base Node ----
+FROM node:18-alpine AS base
 
-# Set the working directory to /app
 WORKDIR /app
 
-# Copy package.json and package-lock.json to the working directory
 COPY package*.json ./
 
-# Install the dependencies
+# ---- Builder ----
+FROM base AS builder
+
 RUN npm ci
 
-# initiate prisma types
-RUN npx prisma generate
-
-# Copy the remaining files to the working directory
 COPY . .
 
-# Build the NestJS project
 RUN npm run build
 
-# Use the official Node.js image as a base image for the final image
-FROM node:18
+# ---- Prisma ----
+FROM builder AS prisma-builder
 
-# Set the working directory to /app
+RUN npm install --production
+
+RUN npx prisma generate
+
+# ---- Production ----
+FROM node:18-alpine AS production
+
 WORKDIR /app
 
-# Copy package.json and package-lock.json to the working directory
+ENV NODE_ENV=production
+
+COPY --from=prisma-builder /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+COPY --from=prisma-builder /app/prisma ./prisma
 COPY package*.json ./
 
-# Install production dependencies only
-RUN npm ci --production
-
-# Copy the build artifacts from the builder stage
-COPY --from=builder /app/dist /app/dist
-
-# Expose the port your application will run on
 EXPOSE 3000
 
-# Start the application
-CMD ["npm", "run", "start:prod"]
+CMD ["node", "dist/main"]
